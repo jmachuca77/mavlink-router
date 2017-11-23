@@ -110,6 +110,7 @@ struct endpoint_config {
             long unsigned port;
             int retry_timeout;
             bool eavesdropping;
+            bool portlock;
         };
         struct {
             char *device;
