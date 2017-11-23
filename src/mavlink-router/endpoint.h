@@ -166,12 +166,17 @@ public:
     int write_msg(const struct buffer *pbuf) override;
     int flush_pending_msgs() override { return -ENOSYS; }
 
-    int open(const char *ip, unsigned long port, bool bind = false);
+    int open(const char *ip, unsigned long port, bool bind = false, bool portlock = true);
 
     struct sockaddr_in sockaddr;
 
 protected:
     ssize_t _read_msg(uint8_t *buf, size_t len) override;
+
+private:
+    bool portlock = false;
+
+    struct sockaddr_in recv_sockaddr;
 };
 
 class TcpEndpoint : public Endpoint {

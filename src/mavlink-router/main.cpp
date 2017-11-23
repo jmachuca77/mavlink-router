@@ -204,7 +204,9 @@ fail:
 }
 
 static int add_endpoint_address(const char *name, size_t name_len, const char *ip,
-                                long unsigned port, bool eavesdropping)
+                                long unsigned port,
+                                bool eavesdropping,
+                                bool portlock)
 {
     int ret;
 
@@ -245,6 +247,7 @@ static int add_endpoint_address(const char *name, size_t name_len, const char *i
     }
 
     conf->eavesdropping = eavesdropping;
+    conf->portlock = portlock;
 
     conf->next = opt.endpoints;
     opt.endpoints = conf;
@@ -401,7 +404,7 @@ static int parse_argv(int argc, char *argv[])
                 return -EINVAL;
             }
 
-            add_endpoint_address(NULL, 0, ip, port, false);
+            add_endpoint_address(NULL, 0, ip, port, false, true);
             free(ip);
             break;
         }
@@ -487,7 +490,7 @@ static int parse_argv(int argc, char *argv[])
                 return -EINVAL;
             }
 
-            add_endpoint_address(NULL, 0, base, number, true);
+            add_endpoint_address(NULL, 0, base, number, true, true);
         } else {
             const char *bauds = number != ULONG_MAX ? base + strlen(base) + 1 : NULL;
             int ret = add_uart_endpoint(NULL, 0, base, bauds, false);
@@ -636,11 +639,13 @@ static int parse_confs(ConfFile &conf)
         char *addr;
         bool eavesdropping;
         unsigned long port;
+        bool portlock;
     };
     static const ConfFile::OptionsTable option_table_udp[] = {
         {"address", true,   ConfFile::parse_str_dup,    OPTIONS_TABLE_STRUCT_FIELD(option_udp, addr)},
         {"mode",    true,   parse_mode,                 OPTIONS_TABLE_STRUCT_FIELD(option_udp, eavesdropping)},
         {"port",    false,  ConfFile::parse_ul,         OPTIONS_TABLE_STRUCT_FIELD(option_udp, port)},
+        {"portlock",  false, ConfFile::parse_bool,      OPTIONS_TABLE_STRUCT_FIELD(option_udp, portlock)},
     };
 
     struct option_tcp {
@@ -678,7 +683,7 @@ static int parse_confs(ConfFile &conf)
     pattern = "udpendpoint *";
     offset = strlen(pattern) - 1;
     while (conf.get_sections(pattern, &iter) == 0) {
-        struct option_udp opt_udp = {nullptr, false, ULONG_MAX};
+        struct option_udp opt_udp = {nullptr, false, ULONG_MAX, true};
         ret = conf.extract_options(&iter, option_table_udp, ARRAY_SIZE(option_table_udp), &opt_udp);
         if (ret == 0) {
             if (opt_udp.eavesdropping && opt_udp.port == ULONG_MAX) {
@@ -686,7 +691,9 @@ static int parse_confs(ConfFile &conf)
                 ret = -EINVAL;
             } else {
                 ret = add_endpoint_address(iter.name + offset, iter.name_len - offset, opt_udp.addr,
-                                           opt_udp.port, opt_udp.eavesdropping);
+                                           opt_udp.port,
+                                           opt_udp.eavesdropping,
+                                           opt_udp.portlock);
             }
         }
 

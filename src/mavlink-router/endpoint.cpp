@@ -647,14 +647,15 @@ UdpEndpoint::UdpEndpoint()
     bzero(&sockaddr, sizeof(sockaddr));
 }
 
-int UdpEndpoint::open(const char *ip, unsigned long port, bool to_bind)
+int UdpEndpoint::open(const char *ip, unsigned long port, bool to_bind, bool _portlock)
 {
-    const int broadcast_val = 1;
     fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (fd == -1) {
         log_error("Could not create socket (%m)");
         return -1;
     }
+
+    portlock = _portlock;
 
     sockaddr.sin_family = AF_INET;
     sockaddr.sin_addr.s_addr = inet_addr(ip);
@@ -666,6 +667,7 @@ int UdpEndpoint::open(const char *ip, unsigned long port, bool to_bind)
             goto fail;
         }
     } else {
+        const int broadcast_val = 1;
         if (setsockopt(fd, SOL_SOCKET, SO_BROADCAST, &broadcast_val, sizeof(broadcast_val))) {
             log_error("Error enabling broadcast in socket (%m)");
             goto fail;
@@ -693,13 +695,17 @@ fail:
 
 ssize_t UdpEndpoint::_read_msg(uint8_t *buf, size_t len)
 {
-    socklen_t addrlen = sizeof(sockaddr);
+    socklen_t addrlen = sizeof(recv_sockaddr);
     ssize_t r = ::recvfrom(fd, buf, len, 0,
-                           (struct sockaddr *)&sockaddr, &addrlen);
+                           (struct sockaddr *)&recv_sockaddr, &addrlen);
     if (r == -1 && errno == EAGAIN)
         return 0;
     if (r == -1)
         return -errno;
+
+    if (portlock) {
+        memcpy((void*)&sockaddr, &recv_sockaddr, sizeof(sockaddr));
+    }
 
     return r;
 }
