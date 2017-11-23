@@ -350,6 +350,18 @@ static bool _print_statistics_timeout_cb(void *data)
     return true;
 }
 
+void Mainloop::update_statsfile()
+{
+    statsfile->update(g_endpoints);
+}
+
+static bool _update_statsfile_timeout_cb(void *data)
+{
+    Mainloop *mainloop = static_cast<Mainloop *>(data);
+    mainloop->update_statsfile();
+    return true;
+}
+
 bool Mainloop::add_endpoints(Mainloop &mainloop, struct options *opt)
 {
     unsigned n_endpoints = 0, i = 0;
@@ -455,6 +467,15 @@ bool Mainloop::add_endpoints(Mainloop &mainloop, struct options *opt)
 
     if (opt->report_msg_statistics)
         add_timeout(MSEC_PER_SEC, _print_statistics_timeout_cb, this);
+
+    if (opt->stats_filepath) {
+        statsfile = new StatsFile(opt->stats_filepath);
+        if (statsfile == nullptr) {
+            ::fprintf(stderr, "Failed to create statsfile object");
+            abort();
+        }
+        add_timeout(MSEC_PER_SEC, _update_statsfile_timeout_cb, this);
+    }
 
     return true;
 }

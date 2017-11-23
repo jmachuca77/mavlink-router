@@ -153,10 +153,12 @@ mavlink_routerd_SOURCES = \
 	src/mavlink-router/timeout.cpp \
 	src/mavlink-router/ulog.h \
 	src/mavlink-router/ulog.cpp \
+	src/mavlink-router/statsfile.cpp \
 	src/common/util.c \
 	src/common/util.h \
 	src/common/xtermios.cpp \
 	src/common/xtermios.h
+
 
 noinst_PROGRAMS += heartbeat-print
 heartbeat_print_SOURCES = \

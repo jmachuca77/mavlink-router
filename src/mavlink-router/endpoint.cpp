@@ -402,6 +402,11 @@ void Endpoint::print_statistics()
     printf("\n}\n");
 }
 
+void Endpoint::update_statsfile(FILE *fp)
+{
+}
+
+
 uint8_t Endpoint::get_trimmed_zeros(const mavlink_msg_entry_t *msg_entry, const struct buffer *buffer)
 {
     struct mavlink_router_mavlink2_header *msg
@@ -692,6 +697,11 @@ int UdpEndpoint::open(const char *ip, unsigned long port, bool to_bind, bool _po
         return -1;
     }
 
+    if (!_ip || strcmp(ip, _ip)) {
+        free(_ip);
+        _ip = strdup(ip);
+        _port = port;
+    }
     portlock = _portlock;
 
     sockaddr.sin_family = AF_INET;
@@ -784,6 +794,15 @@ int UdpEndpoint::write_msg(const struct buffer *pbuf)
     log_debug("UDP: [%d] wrote %zd bytes", fd, r);
 
     return r;
+}
+
+void UdpEndpoint::update_statsfile(FILE *out)
+{
+    ::fprintf(out,
+              "%s:%u %lu\n",
+              inet_ntoa(recv_sockaddr.sin_addr),
+              recv_sockaddr.sin_port,
+              _stat.read.total);
 }
 
 TcpEndpoint::TcpEndpoint()

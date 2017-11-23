@@ -103,6 +103,8 @@ public:
     struct buffer rx_buf;
     struct buffer tx_buf;
 
+    virtual void update_statsfile(FILE *out);
+
 protected:
     virtual int read_msg(struct buffer *pbuf, int *target_system, int *target_compid,
                          uint8_t *src_sysid, uint8_t *src_compid, uint32_t *msg_id);
@@ -175,13 +177,26 @@ public:
 
     struct sockaddr_in sockaddr;
 
+    inline const char *get_ip() {
+        return _ip;
+    }
+
+    inline unsigned long get_port() {
+        return _port;
+    }
+
+    void update_statsfile(FILE *out) override;
+
 protected:
     ssize_t _read_msg(uint8_t *buf, size_t len) override;
 
 private:
     bool portlock = false;
 
-    struct sockaddr_in recv_sockaddr;
+    struct sockaddr_in recv_sockaddr = {};
+
+    char *_ip = nullptr;
+    unsigned long _port = 0;
 };
 
 class TcpEndpoint : public Endpoint {
