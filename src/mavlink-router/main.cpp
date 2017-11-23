@@ -46,6 +46,7 @@ static struct options opt = {
         .tcp_port = ULONG_MAX,
         .report_msg_statistics = false,
         .logs_dir = nullptr,
+        .stats_filepath = nullptr,
         .debug_log_level = (int)Log::Level::INFO,
         .mavlink_dialect = Auto
 };
@@ -55,6 +56,7 @@ static const struct option long_options[] = {
     { "conf-file",              required_argument,  NULL,   'c' },
     { "conf-dir" ,              required_argument,  NULL,   'd' },
     { "report_msg_statistics",  no_argument,        NULL,   'r' },
+    { "stats-filepath ",        required_argument,  NULL,   's' },
     { "tcp-port",               required_argument,  NULL,   't' },
     { "tcp-endpoint",           required_argument,  NULL,   'p' },
     { "log",                    required_argument,  NULL,   'l' },
@@ -78,6 +80,7 @@ static void help(FILE *fp) {
             "  -p --tcp-endpoint <ip:port>  Add TCP endpoint client, which will connect to given\n"
             "                               address\n"
             "  -r --report_msg_statistics   Report message statistics\n"
+            "  -s --stat-filepath           Write link stats to this filepath\n"
             "  -t --tcp-port <port>         Port in which mavlink-router will listen for TCP\n"
             "                               connections. Pass 0 to disable TCP listening.\n"
             "                               Default port 5760\n"
@@ -412,6 +415,10 @@ static int parse_argv(int argc, char *argv[])
             opt.report_msg_statistics = true;
             break;
         }
+        case 's': {
+            opt.stats_filepath = strdup(optarg);
+            break;
+        }
         case 't': {
             if (safe_atoul(optarg, &opt.tcp_port) < 0) {
                 log_error("Invalid argument for tcp-port = %s", optarg);
@@ -621,6 +628,7 @@ static int parse_confs(ConfFile &conf)
         {"ReportStats",     false, ConfFile::parse_bool,    OPTIONS_TABLE_STRUCT_FIELD(options, report_msg_statistics)},
         {"MavlinkDialect",  false, parse_mavlink_dialect,   OPTIONS_TABLE_STRUCT_FIELD(options, mavlink_dialect)},
         {"Log",             false, ConfFile::parse_str_dup, OPTIONS_TABLE_STRUCT_FIELD(options, logs_dir)},
+        {"StatsFilePath",   false, ConfFile::parse_str_dup, OPTIONS_TABLE_STRUCT_FIELD(options, stats_filepath)},
         {"DebugLogLevel",   false, parse_log_level,         OPTIONS_TABLE_STRUCT_FIELD(options, debug_log_level)},
     };
 
@@ -834,6 +842,8 @@ int main(int argc, char *argv[])
     mainloop.free_endpoints(&opt);
 
     free(opt.logs_dir);
+
+    free(opt.stats_filepath);
 
     Log::close();
 

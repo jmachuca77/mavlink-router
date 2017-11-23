@@ -22,6 +22,7 @@
 #include "endpoint.h"
 #include "timeout.h"
 #include "ulog.h"
+#include "statsfile.h"
 
 struct endpoint_entry {
     struct endpoint_entry *next;
@@ -48,6 +49,7 @@ public:
     void free_endpoints(struct options *opt);
     bool add_endpoints(Mainloop &mainloop, struct options *opt);
 
+    void update_statsfile();
     void print_statistics();
 
     int epollfd = -1;
@@ -75,6 +77,8 @@ private:
     Endpoint **g_endpoints = nullptr;
     int g_tcp_fd = -1;
     LogEndpoint *_log_endpoint = nullptr;
+
+    StatsFile *statsfile = nullptr;
 
     Timeout *_timeouts = nullptr;
 
@@ -127,6 +131,7 @@ struct options {
     unsigned long tcp_port;
     bool report_msg_statistics;
     char *logs_dir;
+    char *stats_filepath;
     int debug_log_level;
     enum mavlink_dialect mavlink_dialect;
 };
