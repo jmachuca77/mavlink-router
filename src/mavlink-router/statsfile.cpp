@@ -11,7 +11,7 @@ StatsFile::StatsFile(const char *_filename)
         // absolute filepath
         strcpy(filename, _filename);
         memset(filename_new, '\0', PATH_MAX);
-        strcpy(&filename_new[strlen(filename)], ".tmp");
+        snprintf(filename_new, PATH_MAX, "%s.tmp", filename);
     } else {
         // relative to log path
         ::fprintf(stderr, "stats filepath must be absolute");
