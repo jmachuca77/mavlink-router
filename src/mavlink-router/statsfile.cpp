@@ -9,14 +9,8 @@ StatsFile::StatsFile(const char *_filename)
 {
     if (_filename[0] == '/') {
         // absolute filepath
-        filename = strdup(_filename);
-        filename_new = strdup(filename);
-        filename_new = (char*)realloc(filename_new, strlen(filename_new+4));
-        if (filename_new == nullptr) {
-            ::fprintf(stderr, "realloc failed");
-            abort();
-        }
-        memset(&filename_new[strlen(filename)], '\0', 4);
+        strcpy(filename, _filename);
+        memset(filename_new, '\0', PATH_MAX);
         strcpy(&filename_new[strlen(filename)], ".tmp");
     } else {
         // relative to log path
