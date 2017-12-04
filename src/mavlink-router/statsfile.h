@@ -1,6 +1,7 @@
 #pragma once
 
 #include <time.h>
+#include <limits.h>
 
 #include "endpoint.h"
 
@@ -14,6 +15,6 @@ public:
 
 private:
 
-    char *filename;
-    char *filename_new;
+    char filename[PATH_MAX];
+    char filename_new[PATH_MAX];
 };
