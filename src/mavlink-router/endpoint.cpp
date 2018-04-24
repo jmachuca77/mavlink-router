@@ -732,7 +732,7 @@ int UdpEndpoint::write_msg(const struct buffer *pbuf)
         ;
     }
 
-    if (!sockaddr.sin_port) {
+    if (!sockaddr.sin_port && portlock) {
         log_debug("No one ever connected to %d. No one to write for", fd);
         return 0;
     }
