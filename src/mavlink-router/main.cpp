@@ -733,7 +733,7 @@ static int parse_confs(ConfFile &conf)
     pattern = "udpendpoint *";
     offset = strlen(pattern) - 1;
     while (conf.get_sections(pattern, &iter) == 0) {
-        struct option_udp opt_udp = {nullptr, false, ULONG_MAX, true};
+        struct option_udp opt_udp = {nullptr, false, ULONG_MAX, NULL, true};
         ret = conf.extract_options(&iter, option_table_udp, ARRAY_SIZE(option_table_udp), &opt_udp);
         if (ret == 0) {
             if (opt_udp.eavesdropping && opt_udp.port == ULONG_MAX) {
